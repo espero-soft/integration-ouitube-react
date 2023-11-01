@@ -41,6 +41,6 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 
 ## Learn More
 
-You can learn more in the [Create Ouitube API documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+You can learn more in the [Create Ouitube API documentation]((https://ouitube.fr/docs/getting-started).
 
-To learn API Ouitube, check out the [Ouitube documentation](https://ouitube.fr/documentation).
+To learn API Ouitube, check out the [Ouitube documentation](https://ouitube.fr/docs).
