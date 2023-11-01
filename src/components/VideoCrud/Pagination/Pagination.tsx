@@ -11,25 +11,26 @@ import './Pagination.css';
 interface PaginationProps {
   pageNumbers: any[],
   currentPage: number,
-  handleSelect: (value: number)=>void,
+  handleSelect: (value: number) => void,
 }
 
 
-const Pagination : FC<PaginationProps> = ({pageNumbers,currentPage,handleSelect}) =>{
+const Pagination: FC<PaginationProps> = ({ pageNumbers, currentPage, handleSelect }) => {
 
 
 
-    useEffect(() => {
-      window.scrollTo(0,0)
-      const runLocalData = async () => {
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    const runLocalData = async () => {
 
-      }
-      runLocalData()
-    })
+    }
+    runLocalData()
+  })
 
   return (
-      <div className="Pagination pt-2 pb-2 ">
-          <nav aria-label="Page navigation example">
+    <div className="Pagination pt-2 pb-2 ">
+      <nav aria-label="Page navigation example">
+        
         <ul className="pagination">
           {pageNumbers.map((number: any) => (
             <li key={number} className={number === currentPage ? 'page-item active shadow' : 'page-item shadow'}>
@@ -38,7 +39,7 @@ const Pagination : FC<PaginationProps> = ({pageNumbers,currentPage,handleSelect}
           ))}
         </ul>
       </nav>
-      </div>
+    </div>
   );
 }
 

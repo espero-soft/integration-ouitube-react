@@ -17,6 +17,7 @@ import ManageVideoModal from './ManageVideoModal/ManageVideoModal';
 import Pagination from './Pagination/Pagination';
 import { getTag } from '../../redux/selectors/selector';
 import { useSelector } from 'react-redux';
+import DataPerPage from '../DataPerPage/DataPerPage';
 
 
 const VideoCrud: React.FC = () => {
@@ -27,12 +28,12 @@ const VideoCrud: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [videosPerPage] = useState(5);
+  const [videosPerPage, setVideosPerPage] = useState((window as any).localStorage.getItem('perPage') || 5);
 
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const tag = useSelector(getTag)
-  
+
   // Mock function to load videos (you should replace it with your API call)
   const loadVideos = async () => {
     // Fetch videos and set them to the videos state
@@ -44,7 +45,9 @@ const VideoCrud: React.FC = () => {
 
   useEffect(() => {
     loadVideos();
-  }, [currentVideo, currentPage,tag]);
+    (window as any).localStorage.setItem('perPage', videosPerPage)
+    setVideosPerPage((window as any).localStorage.getItem('perPage'))
+  }, [currentVideo, videosPerPage, currentPage, tag]);
 
   const handleAdd = () => {
     // setFileUrl(null)
@@ -98,6 +101,8 @@ const VideoCrud: React.FC = () => {
 
 
 
+
+
   return (
     <div className='container pt-3'>
       <Button className='shadow' onClick={handleAdd}>Add Video</Button>
@@ -132,61 +137,84 @@ const VideoCrud: React.FC = () => {
           :
           null
       }
+      <div className='d-flex gap-1 align-item-center justify-content-end'>
 
-      <Pagination
-        currentPage={currentPage}
-        pageNumbers={pageNumbers}
-        handleSelect={setCurrentPage}
-      />
+        <DataPerPage
+          videosPerPage={videosPerPage}
+          setVideosPerPage={setVideosPerPage}
+        />
+        {
+          pageNumbers.length > 1 ?
+            <Pagination
+              currentPage={currentPage}
+              pageNumbers={pageNumbers}
+              handleSelect={setCurrentPage}
+            />
+            :
+            null
+        }
+      </div>
       {
         tag && (
-          <p> <strong>{data?.results?.length}</strong> Résultat{data?.results?.length > 1 ? "s" : ""} de recherche pour le mot clé <strong>{tag}</strong> </p>
+          <p> <strong>{data?.results?.length}</strong> Search result{data?.results?.length > 1 ? "s" : ""} for the keyword <strong>{tag}</strong> </p>
         )
       }
       {
         data?.results?.length ?
-        <table className="table table-bordered shadow">
-          <thead>
-            <tr>
-              <th>N°</th>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.results.map((video: Video, index: number) => (
-              <tr key={video._id}>
-                <td>{data?.allCount - ((currentPage-1)*videosPerPage) - index}</td>
-                <td>
-                  <img onClick={() => openVideoModal(video)} className='shadow' src={video?.posterFiles?.[0]} width={100} />
-                </td>
-                <td>{video.name}</td>
-                <td>{video.description}</td>
-                <td>
-                  <div className="d-flex h-100 justify-content-center  align-items-center gap-1">
-
-                    <Button className='shadow' variant="success" onClick={() => openVideoModal(video)}>View</Button>
-
-                    <Button className='shadow' onClick={() => handleEdit(video)}>Edit</Button>
-
-                    <Button className='shadow' variant="danger" onClick={() => handleDelete(video)}> Delete </Button>
-
-                  </div>
-                </td>
+          <table className="table table-bordered shadow">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        :
-        null
+            </thead>
+            <tbody>
+              {data?.results.map((video: Video, index: number) => (
+                <tr key={video._id}>
+                  <td>{data?.allCount - ((currentPage - 1) * videosPerPage) - index}</td>
+                  <td>
+                    <img onClick={() => openVideoModal(video)} className='shadow' src={video?.posterFiles?.[0]} width={100} />
+                  </td>
+                  <td>{video.name}</td>
+                  <td>{video.description}</td>
+                  <td>
+                    <div className="d-flex h-100 justify-content-center  align-items-center gap-1">
+
+                      <Button className='shadow' variant="success" onClick={() => openVideoModal(video)}>View</Button>
+
+                      <Button className='shadow' onClick={() => handleEdit(video)}>Edit</Button>
+
+                      <Button className='shadow' variant="danger" onClick={() => handleDelete(video)}> Delete </Button>
+
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          :
+          null
       }
-      <Pagination
-        currentPage={currentPage}
-        pageNumbers={pageNumbers}
-        handleSelect={setCurrentPage}
-      />
+      <div className='d-flex gap-1 align-item-center justify-content-end'>
+
+        <DataPerPage
+          videosPerPage={videosPerPage}
+          setVideosPerPage={setVideosPerPage}
+        />
+        {
+          pageNumbers.length > 1 ?
+            <Pagination
+              currentPage={currentPage}
+              pageNumbers={pageNumbers}
+              handleSelect={setCurrentPage}
+            />
+            :
+            null
+        }
+      </div>
     </div>
   );
 };
