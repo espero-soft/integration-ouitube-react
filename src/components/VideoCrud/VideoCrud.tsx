@@ -200,10 +200,10 @@ const VideoCrud: React.FC = () => {
       }
       <div className='d-flex gap-1 align-item-center justify-content-end'>
 
-        <DataPerPage
+        {/* <DataPerPage
           videosPerPage={videosPerPage}
           setVideosPerPage={setVideosPerPage}
-        />
+        /> */}
         {
           pageNumbers.length > 1 ?
             <Pagination
