@@ -138,40 +138,50 @@ const VideoCrud: React.FC = () => {
         pageNumbers={pageNumbers}
         handleSelect={setCurrentPage}
       />
-      <table className="table table-bordered shadow">
-        <thead>
-          <tr>
-            <th>N°</th>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.results.map((video: Video, index: number) => (
-            <tr key={video._id}>
-              <td>{data?.allCount - ((currentPage-1)*videosPerPage) - index}</td>
-              <td>
-                <img onClick={() => openVideoModal(video)} className='shadow' src={video?.posterFiles?.[0]} width={100} />
-              </td>
-              <td>{video.name}</td>
-              <td>{video.description}</td>
-              <td>
-                <div className="d-flex h-100 justify-content-center  align-items-center gap-1">
-
-                  <Button className='shadow' variant="success" onClick={() => openVideoModal(video)}>View</Button>
-
-                  <Button className='shadow' onClick={() => handleEdit(video)}>Edit</Button>
-
-                  <Button className='shadow' variant="danger" onClick={() => handleDelete(video)}> Delete </Button>
-
-                </div>
-              </td>
+      {
+        tag && (
+          <p> <strong>{data?.results?.length}</strong> Résultat{data?.results?.length > 1 ? "s" : ""} de recherche pour le mot clé <strong>{tag}</strong> </p>
+        )
+      }
+      {
+        data?.results?.length ?
+        <table className="table table-bordered shadow">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data?.results.map((video: Video, index: number) => (
+              <tr key={video._id}>
+                <td>{data?.allCount - ((currentPage-1)*videosPerPage) - index}</td>
+                <td>
+                  <img onClick={() => openVideoModal(video)} className='shadow' src={video?.posterFiles?.[0]} width={100} />
+                </td>
+                <td>{video.name}</td>
+                <td>{video.description}</td>
+                <td>
+                  <div className="d-flex h-100 justify-content-center  align-items-center gap-1">
+
+                    <Button className='shadow' variant="success" onClick={() => openVideoModal(video)}>View</Button>
+
+                    <Button className='shadow' onClick={() => handleEdit(video)}>Edit</Button>
+
+                    <Button className='shadow' variant="danger" onClick={() => handleDelete(video)}> Delete </Button>
+
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        :
+        null
+      }
       <Pagination
         currentPage={currentPage}
         pageNumbers={pageNumbers}
