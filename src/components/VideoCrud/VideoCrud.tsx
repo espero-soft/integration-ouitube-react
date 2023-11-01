@@ -7,116 +7,62 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
-import { addVideos, deleteVideo, getVideos, updateVideos } from '../../api/api-video';
+import { addVideos, deleteVideo, getVideos, searchVideos, updateVideos } from '../../api/api-video';
 import { generateFileUrl } from '../../helpers/utils';
-import DeleteConfirmationModal from '../DeleteConfirmationModal/DeleteConfirmationModal';
-import VideoModal from '../VideoModal/VideoModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal/DeleteConfirmationModal';
+import ViewVideoModal from './ViewVideoModal/ViewVideoModal';
+import VideoPlayer from '../VideoPlayer/VideoPlayer';
+import { Video } from '../../models/Video';
+import ManageVideoModal from './ManageVideoModal/ManageVideoModal';
+import Pagination from './Pagination/Pagination';
+import { getTag } from '../../redux/selectors/selector';
+import { useSelector } from 'react-redux';
 
-interface Video {
-  _id?: string;
-  name: string;
-  description: string;
-  uniqueCode: string;
-  posterFiles?: any[],
-  created_at: Date;
-  updated_at: Date;
-}
 
 const VideoCrud: React.FC = () => {
 
-  const [videos, setVideos] = useState<Video[]>([]);
+  const [data, setData] = useState<any>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState<any>(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [formValues, setFormValues] = useState<Video>({ name: '', description: '', uniqueCode: '', created_at: new Date(), updated_at: new Date() });
-  const [fileData, setFileData] = useState<File | null>(null);
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [error, setError] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [videosPerPage] = useState(5);
+
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
-
+  const tag = useSelector(getTag)
+  
   // Mock function to load videos (you should replace it with your API call)
   const loadVideos = async () => {
     // Fetch videos and set them to the videos state
-    const data = await getVideos(1, 60)
+    const data = await searchVideos(tag, currentPage, videosPerPage)
     if (data.isSuccess) {
-      console.log(data);
-      setVideos(data.results)
+      setData(data)
     }
   };
 
   useEffect(() => {
     loadVideos();
-  }, []);
+  }, [currentVideo, currentPage,tag]);
 
   const handleAdd = () => {
-    setFormValues({ name: '', description: '', uniqueCode: '', created_at: new Date(), updated_at: new Date() });
+    // setFileUrl(null)
+    // setFormValues({ name: '', description: '', uniqueCode: '', created_at: new Date(), updated_at: new Date() });
+    setSelectedVideo(null)
     setShowAddModal(true);
+    setShowEditModal(false);
   };
 
   const handleEdit = (video: Video) => {
-    setFormValues(video);
+    // setFileUrl("https://api.ouitube.fr/videos/" + video?.uniqueCode)
+    // setFormValues(video);
     setSelectedVideo(video);
     setShowEditModal(true);
+    setShowAddModal(false)
   };
 
-  const handleSave = async (e: any) => {
-    e.preventDefault()
-    // Save or update the video (you should implement this part)
-    if (selectedVideo) {
-      // Update video
-      // Call your update API with formValues
-      let formData
-      const video = {
-        name: formValues.name,
-        description: formValues.description,
-        updated_at: new Date()
-      }
-      if (fileData) {
-        formData = new FormData();
-        formData.append('video', JSON.stringify(video))
-        formData.append('videoFile', fileData)
 
-      } else {
-        formData = video
-      }
-
-
-      await updateVideos(selectedVideo.uniqueCode, formData)
-
-    } else if (fileData) {
-      // Add video
-      // Call your create API with formValues
-      const formData = new FormData();
-
-      const video = {
-        name: formValues.name,
-        description: formValues.description,
-        create_at: new Date()
-      }
-      formData.append('video', JSON.stringify(video))
-      formData.append('videoFile', fileData)
-      await addVideos(formData)
-
-    }
-    console.log({ formValues });
-
-    setShowAddModal(false);
-    setShowEditModal(false);
-    loadVideos(); // Reload videos after adding or updating
-  };
-
-  const handleSetFile = async (file: File) => {
-    try {
-      const url: string = await generateFileUrl(file)
-      setFileUrl(url)
-      setFileData(file)
-
-    } catch (error) {
-      setError(error)
-    }
-  }
 
   const handleDelete = (video: Video) => {
     // Delete the video (you should implement this part)
@@ -140,11 +86,21 @@ const VideoCrud: React.FC = () => {
     setShowVideoModal(false);
   };
 
+  const indexOfLastVideo = currentPage * videosPerPage;
+  const indexOfFirstVideo = indexOfLastVideo - videosPerPage;
+
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(data?.allCount / videosPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+
+
 
 
   return (
     <div className='container pt-3'>
-      <Button onClick={handleAdd}>Add Video</Button>
+      <Button className='shadow' onClick={handleAdd}>Add Video</Button>
       {
         showDeleteModal ?
           <DeleteConfirmationModal
@@ -157,15 +113,32 @@ const VideoCrud: React.FC = () => {
       }
       {
         showVideoModal && currentVideo ?
-        <VideoModal
-          show={showVideoModal}
-          videoUrl={"https://api.ouitube.fr/videos/" + currentVideo?.uniqueCode} // Remplacez par l'URL de votre vidéo
-          onHide={closeVideoModal}
-        />
-        :
-        null
+          <ViewVideoModal
+            show={showVideoModal}
+            videoUrl={"https://api.ouitube.fr/videos/" + currentVideo?.uniqueCode} // Remplacez par l'URL de votre vidéo
+            onHide={closeVideoModal}
+          />
+          :
+          null
       }
-      <table className="table">
+      {
+        setShowEditModal || setShowAddModal ?
+          <ManageVideoModal
+            video={selectedVideo ? selectedVideo : null}
+            setShowModal={selectedVideo ? setShowEditModal : setShowAddModal}
+            showModal={selectedVideo ? showEditModal : showAddModal}
+            reloadVideo={loadVideos}
+          />
+          :
+          null
+      }
+
+      <Pagination
+        currentPage={currentPage}
+        pageNumbers={pageNumbers}
+        handleSelect={setCurrentPage}
+      />
+      <table className="table table-bordered shadow">
         <thead>
           <tr>
             <th>N°</th>
@@ -176,27 +149,22 @@ const VideoCrud: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {videos.map((video, index) => (
+          {data?.results.map((video: Video, index: number) => (
             <tr key={video._id}>
-              <td>{index + 1}</td>
+              <td>{data?.allCount - ((currentPage-1)*videosPerPage) - index}</td>
               <td>
-                <img src={video?.posterFiles?.[0]} width={100} />
+                <img onClick={() => openVideoModal(video)} className='shadow' src={video?.posterFiles?.[0]} width={100} />
               </td>
               <td>{video.name}</td>
               <td>{video.description}</td>
-              <td className='d-flex'>
-                <div className="m-1">
-                  <Button variant="success" onClick={() => openVideoModal(video)}>View</Button>
+              <td>
+                <div className="d-flex h-100 justify-content-center  align-items-center gap-1">
 
-                </div>
-                <div className="m-1">
-                  <Button onClick={() => handleEdit(video)}>Edit</Button>
+                  <Button className='shadow' variant="success" onClick={() => openVideoModal(video)}>View</Button>
 
-                </div>
-                <div className="m-1">
-                  <Button variant="danger" onClick={() => handleDelete(video)}>
-                    Delete
-                  </Button>
+                  <Button className='shadow' onClick={() => handleEdit(video)}>Edit</Button>
+
+                  <Button className='shadow' variant="danger" onClick={() => handleDelete(video)}> Delete </Button>
 
                 </div>
               </td>
@@ -204,112 +172,11 @@ const VideoCrud: React.FC = () => {
           ))}
         </tbody>
       </table>
-
-      <Modal show={showAddModal} size='lg' scrollable centered onHide={() => setShowAddModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add Video</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {error && (<div className="error">${error.message}</div>)}
-
-          <Form>
-            {/* Add form fields for video details */}
-            <Form.Group controlId="formName">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter name"
-                value={formValues.name}
-                onChange={(e) => setFormValues({ ...formValues, name: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group controlId="formDescription">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter description"
-                value={formValues.description}
-                className='mb-1'
-                onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
-              />
-
-            </Form.Group>
-            {fileUrl && (
-              <Form.Group controlId="formVideo">
-                <video src={fileUrl} controls width="100%"></video>
-              </Form.Group>
-            )}
-            <Form.Group controlId="formVideo">
-              <Form.Label>Video</Form.Label>
-              <Form.Control
-                type="file"
-                onChange={(e: any) => handleSetFile(e.target.files[0])}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowAddModal(false)}>
-            Close
-          </Button>
-          {formValues.name && formValues.description && fileData && (
-            <Button variant="primary" onClick={handleSave}>
-              Save
-            </Button>
-
-          )}
-        </Modal.Footer>
-      </Modal>
-
-      <Modal show={showEditModal} size='lg' scrollable centered onHide={() => setShowEditModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Video</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {error && (<div className="error">${error.message}</div>)}
-          <Form>
-            {/* Add form fields for video details */}
-            <Form.Group controlId="formName">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter name"
-                value={formValues.name}
-                onChange={(e) => setFormValues({ ...formValues, name: e.target.value })}
-              />
-            </Form.Group>
-            <Form.Group controlId="formDescription">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter description"
-                value={formValues.description}
-                onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
-              />
-            </Form.Group>
-            {fileUrl && (
-              <Form.Group controlId="formVideo">
-                <video src={fileUrl} controls width="100%"></video>
-              </Form.Group>
-            )}
-            <Form.Group controlId="formVideo">
-              <Form.Label>Video</Form.Label>
-              <Form.Control
-                type="file"
-                onChange={(e: any) => handleSetFile(e.target.files[0])}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleSave}>
-            Update
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <Pagination
+        currentPage={currentPage}
+        pageNumbers={pageNumbers}
+        handleSelect={setCurrentPage}
+      />
     </div>
   );
 };
