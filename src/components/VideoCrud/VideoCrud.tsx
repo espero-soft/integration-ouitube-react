@@ -18,6 +18,7 @@ import Pagination from './Pagination/Pagination';
 import { getTag } from '../../redux/selectors/selector';
 import { useSelector } from 'react-redux';
 import DataPerPage from '../DataPerPage/DataPerPage';
+import ImagePreview from '../PreviewImage/ImagePreview';
 
 
 const VideoCrud: React.FC = () => {
@@ -32,6 +33,7 @@ const VideoCrud: React.FC = () => {
 
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const tag = useSelector(getTag)
 
   // Mock function to load videos (you should replace it with your API call)
@@ -87,6 +89,12 @@ const VideoCrud: React.FC = () => {
 
   const closeVideoModal = () => {
     setShowVideoModal(false);
+  };
+  const viewImagesPreview = (images: any[]) => {
+    setImages(images);
+  };
+  const closeImagesPreview = () => {
+    setImages([]);
   };
 
   const indexOfLastVideo = currentPage * videosPerPage;
@@ -160,6 +168,15 @@ const VideoCrud: React.FC = () => {
         )
       }
       {
+        images.length ?
+        <ImagePreview 
+        images={images}  
+        onClose={closeImagesPreview}
+        />
+        :
+        null 
+      }
+      {
         data?.results?.length ?
           <table className="table table-bordered shadow">
             <thead>
@@ -176,7 +193,7 @@ const VideoCrud: React.FC = () => {
                 <tr key={video._id}>
                   <td>{data?.allCount - ((currentPage - 1) * videosPerPage) - index}</td>
                   <td>
-                    <img onClick={() => openVideoModal(video)} className='shadow' src={video?.posterFiles?.[0]} width={100} />
+                    <img onClick={() => viewImagesPreview(video?.posterFiles || [])} className='shadow' src={video?.posterFiles?.[0]} width={100} />
                   </td>
                   <td>{video.name}</td>
                   <td>{video.description}</td>

@@ -18,7 +18,7 @@ const Pagination: FC<PaginationProps> = ({ pageNumbers, currentPage, handleSelec
   const totalPageCount = pageNumbers.length;
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // window.scrollTo(0, 0);
   }, []);
 
   const handlePrevious = () => {
