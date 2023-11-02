@@ -28,8 +28,8 @@ const Header: FC<HeaderProps> = () => {
   })
 
   return (
-    <div className="Header shadow">
-      <header className="py-3 mb-3 border-bottom">
+    <div className="Header shadow sticky-top">
+      <header className="py-3 mb-3 border-bottom position-sticky-top">
         <div className="container-fluid d-grid gap-3 align-items-center" style={{ gridTemplateColumns: '1fr 2fr' }}>
           <div className="">
             <a href="#" className="d-flex align-items-center col-lg-4 mb-2 mb-lg-0 link-dark text-decoration-none">
